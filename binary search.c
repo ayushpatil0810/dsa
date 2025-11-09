@@ -1,43 +1,90 @@
 #include <stdio.h>
+#define MAX 50
 
-int binary(int a[], int x, int n){
-    int l=0, h=n-1, m;
-    while(l<=h){
-        m=(l+h)/2;
-        if(a[m]==x) return m;
-        if(a[m]>x) h=m-1;
-        else l=m+1;
+int linearSearch(int a[], int n, int key) {
+    for (int i = 0; i < n; i++) {
+        if (a[i] == key)
+            return i;  // found
+    }
+    return -1; // not found
+}
+int binarySearch(int a[], int n, int key) {
+    int low = 0, high = n - 1, mid;
+    while (low <= high) {
+        mid = (low + high) / 2;
+        if (a[mid] == key)
+            return mid;
+        else if (a[mid] > key)
+            high = mid - 1;
+        else
+            low = mid + 1;
     }
     return -1;
 }
 
-int main(){
-    int n, x, ch, position, recheck;
+// --- Sort Array (for Binary Search) ---
+void sortArray(int a[], int n) {
+    int temp;
+    for (int i = 0; i < n - 1; i++)
+        for (int j = i + 1; j < n; j++)
+            if (a[i] > a[j]) {
+                temp = a[i];
+                a[i] = a[j];
+                a[j] = temp;
+            }
+}
+int main() {
+    int a[MAX], n, key, ch, pos;
+
     printf("Enter number of students: ");
     scanf("%d", &n);
-    int a[n];
-    printf("Enter roll numbers in ascending order:\n");
-    for(int i=0; i<n; i++) 
-		scanf("%d", &a[i]);
 
-    do{
-        printf("\n1. Binary Search\n2. Exit\nEnter your choice: ");
+    printf("Enter roll numbers:\n");
+    for (int i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+
+    do {
+        printf("\n=== Menu ===\n");
+        printf("1. Linear Search (Random Order)\n");
+        printf("2. Binary Search (Sorted Order)\n");
+        printf("3. Exit\n");
+        printf("Enter your choice: ");
         scanf("%d", &ch);
-        if(ch==2) break;
 
-        printf("Enter roll number to search: ");
-        scanf("%d", &x);
-        position = binary(a, x, n);
+        switch (ch) {
+            case 1:
+                printf("Enter roll number to search: ");
+                scanf("%d", &key);
+                pos = linearSearch(a, n, key);
+                if (pos == -1)
+                    printf("Roll number not found.\n");
+                else
+                    printf("Roll number found at position %d.\n", pos + 1);
+                break;
 
-        if(position==-1)
-            printf("Roll number not found!\n");
-        else
-            printf("Roll number found at position %d\n", position+1);
+            case 2:
+                sortArray(a, n);
+                printf("Sorted Roll Numbers: ");
+                for (int i = 0; i < n; i++)
+                    printf("%d ", a[i]);
+                printf("\nEnter roll number to search: ");
+                scanf("%d", &key);
+                pos = binarySearch(a, n, key);
+                if (pos == -1)
+                    printf("Roll number not found.\n");
+                else
+                    printf("Roll number found at position %d.\n", pos + 1);
+                break;
 
-        printf("Check another number? (1=Yes / 0=No): ");
-        scanf("%d", &recheck);
-    } while(recheck==1);
+            case 3:
+                printf("Exiting program...\n");
+                break;
+
+            default:
+                printf("Invalid choice!\n");
+        }
+
+    } while (ch != 3);
 
     return 0;
 }
-
