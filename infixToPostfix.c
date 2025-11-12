@@ -1,17 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <ctype.h>
 #include <math.h>
 
-// Stack structure for characters
 struct stack {
     int top;
     int size;
     char *arr;
 };
 
-// Stack structure for integers (used during postfix evaluation)
 struct intStack {
     int top;
     int size;
@@ -19,92 +16,87 @@ struct intStack {
 };
 
 // Stack functions for characters
-void initStack(struct stack *s, int size) {
-    s->size = size;
-    s->top = -1;
-    s->arr = (char *)malloc(size * sizeof(char));
-}
+int isEmpty(struct stack *s) { return (s->top == -1); }
+int isFull(struct stack *s) { return (s->top == s->size - 1); }
 
-int isEmpty(struct stack *s) {
-    return s->top == -1;
-}
-
-int isFull(struct stack *s) {
-    return s->top == s->size - 1;
-}
-
-void push(struct stack *s, char val) {
-    if (isFull(s)) return;
-    s->arr[++s->top] = val;
+void push(struct stack *s, char data) {
+    if (isFull(s))
+        printf("Stack Overflow\n");
+    else
+        s->arr[++s->top] = data;
 }
 
 char pop(struct stack *s) {
-    if (isEmpty(s)) return -1;
+    if (isEmpty(s)) {
+        printf("Stack Underflow\n");
+        return -1;
+    }
     return s->arr[s->top--];
 }
 
-char peek(struct stack *s) {
-    if (isEmpty(s)) return -1;
-    return s->arr[s->top];
-}
-
 // Stack functions for integers
-void initIntStack(struct intStack *s, int size) {
-    s->size = size;
-    s->top = -1;
-    s->arr = (int *)malloc(size * sizeof(int));
+int isIntEmpty(struct intStack *s) { return (s->top == -1); }
+
+void intPush(struct intStack *s, int data) {
+    s->arr[++s->top] = data;
 }
 
-int isIntEmpty(struct intStack *s) {
-    return s->top == -1;
-}
-
-void pushInt(struct intStack *s, int val) {
-    s->arr[++s->top] = val;
-}
-
-int popInt(struct intStack *s) {
-    if (isIntEmpty(s)) return -1;
+int intPop(struct intStack *s) {
+    if (isIntEmpty(s)) {
+        printf("Stack Underflow (int)\n");
+        return 0;
+    }
     return s->arr[s->top--];
 }
 
 // Utility functions
-int precedence(char op) {
-    switch (op) {
-        case '^': return 3;
-        case '*':
-        case '/':
-        case '%': return 2;
-        case '+':
-        case '-': return 1;
-        default: return 0;
-    }
+int isOperator(char ch) {
+    return (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '^');
 }
 
-int isOperator(char c) {
-    return (c == '+' || c == '-' || c == '*' || c == '/' || c == '^' || c == '%');
+int precedence(char ch) {
+    if (ch == '^')
+        return 3;
+    else if (ch == '*' || ch == '/')
+        return 2;
+    else if (ch == '+' || ch == '-')
+        return 1;
+    return 0;
 }
 
-// Convert infix to postfix
-void infixToPostfix(char *infix, char *postfix) {
+// Convert infix → postfix
+char *infixToPostfix(char *infix, char *postfix) {
     struct stack s;
-    initStack(&s, strlen(infix));
-    int i = 0, j = 0;
-    char c;
+    s.top = -1;
+    s.size = 50;
+    s.arr = (char *)malloc(s.size * sizeof(char));
 
-    while ((c = infix[i++]) != '\0') {
-        if (isdigit(c)) {
-            postfix[j++] = c;
-        } else if (c == '(') {
-            push(&s, c);
-        } else if (c == ')') {
-            while (!isEmpty(&s) && peek(&s) != '(')
+    int i = 0, j = 0;
+    while (infix[i] != '\0') {
+        char ch = infix[i];
+
+        if (ch == '(') {
+            push(&s, ch);
+            i++;
+        } else if (ch == ')') {
+            while (!isEmpty(&s) && s.arr[s.top] != '(')
                 postfix[j++] = pop(&s);
-            pop(&s); // remove '('
-        } else if (isOperator(c)) {
-            while (!isEmpty(&s) && precedence(peek(&s)) >= precedence(c))
+            if (!isEmpty(&s))
+                pop(&s);
+            i++;
+        } else if (isOperator(ch)) {
+            while (!isEmpty(&s) &&
+                   ((precedence(ch) < precedence(s.arr[s.top])) ||
+                    (precedence(ch) == precedence(s.arr[s.top]) && ch != '^'))) {
                 postfix[j++] = pop(&s);
-            push(&s, c);
+            }
+            push(&s, ch);
+            i++;
+        } else if (isalnum(ch)) {
+            postfix[j++] = ch;
+            i++;
+        } else {
+            i++; // ignore spaces or invalid chars
         }
     }
 
@@ -113,52 +105,56 @@ void infixToPostfix(char *infix, char *postfix) {
 
     postfix[j] = '\0';
     free(s.arr);
+    return postfix;
 }
 
-// Evaluate postfix expression
+// Evaluate postfix
 int evaluatePostfix(char *postfix) {
     struct intStack s;
-    initIntStack(&s, strlen(postfix));
+    s.top = -1;
+    s.size = 50;
+    s.arr = (int *)malloc(s.size * sizeof(int));
 
-    for (int i = 0; postfix[i] != '\0'; i++) {
-        char c = postfix[i];
+    int i = 0;
+    while (postfix[i] != '\0') {
+        char ch = postfix[i];
 
-        if (isdigit(c)) {
-            pushInt(&s, c - '0');
-        } else if (isOperator(c)) {
-            int val2 = popInt(&s);
-            int val1 = popInt(&s);
-            int result = 0;
+        if (isdigit(ch)) {
+            intPush(&s, ch - '0');
+        } else if (isOperator(ch)) {
+            int val2 = intPop(&s);
+            int val1 = intPop(&s);
+            int result;
 
-            switch (c) {
+            switch (ch) {
                 case '+': result = val1 + val2; break;
                 case '-': result = val1 - val2; break;
                 case '*': result = val1 * val2; break;
                 case '/': result = val1 / val2; break;
-                case '%': result = val1 % val2; break;
                 case '^': result = pow(val1, val2); break;
+                default: result = 0;
             }
-            pushInt(&s, result);
+            intPush(&s, result);
         }
+        i++;
     }
 
-    int res = popInt(&s);
+    int final = intPop(&s);
     free(s.arr);
-    return res;
+    return final;
 }
 
-// Main function
 int main() {
-    char infix[100], postfix[100];
+    char infix[50], postfix[50];
 
-    printf("Enter an infix expression (single-digit numbers): ");
+    printf("Enter the Infix Expression (use single-digit operands):\n");
     scanf("%s", infix);
 
     infixToPostfix(infix, postfix);
-    printf("Postfix expression: %s\n", postfix);
+    printf("Postfix Expression: %s\n", postfix);
 
     int result = evaluatePostfix(postfix);
-    printf("Evaluated result: %d\n", result);
+    printf("Evaluated Result: %d\n", result);
 
     return 0;
 }
