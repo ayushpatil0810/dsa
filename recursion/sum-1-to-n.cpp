@@ -1,16 +1,26 @@
-#include <iostream>
+#include <iostream> 
 
 using namespace std;
 
-int res = 0;
-void sum(int i, int n)
+// paramatarized way
+void print(int i, int sum)
 {
-    if (i > n)
+    if (i < 0)
     {
+        cout << sum << endl;
         return;
     }
-    res += i;
-    sum(i + 1, n);
+    print(i - 1, sum + i);
+}
+
+// functional recursion
+
+int sum_1_to_n(int n)
+{
+    if (n == 0)
+        return 0;
+
+    return n + sum_1_to_n(n - 1);
 }
 
 int main()
@@ -18,6 +28,6 @@ int main()
     int n;
     cin >> n;
 
-    sum(1, n);
-    cout << res;
+    // print(n, 0);
+    cout << sum_1_to_n(n);
 }
