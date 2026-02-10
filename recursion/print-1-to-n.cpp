@@ -32,6 +32,6 @@ int main()
     int n;
     cin >> n;
 
-    // printOneToN(n, n);
-    printOneToN_2(n, n);
+    printOneToN(1, n);
+    // printOneToN_2(n, n);
 }
