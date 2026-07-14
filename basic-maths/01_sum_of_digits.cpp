@@ -2,21 +2,21 @@
 
 using namespace std;
 
-int reverseNumber(int n)
+int sumOfDigits(int n)
 {
-    int rev = 0;
+    int sum = 0;
     while (n > 0)
     {
         int lDigit = n % 10;
-        rev = (rev * 10) + lDigit;
+        sum += lDigit;
         n = n / 10;
     }
-    return rev;
+    return sum;
 }
 
 int main()
 {
     int n;
     cin >> n;
-    cout << reverseNumber(n);
+    cout << sumOfDigits(n);
 }
